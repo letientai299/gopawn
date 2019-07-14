@@ -6,8 +6,6 @@
 
 cd "$PROJECT_DIR" || exit 1
 
-make gen.mock
-
 if has richgo; then
   GO_TEST="richgo"
 else

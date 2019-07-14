@@ -9,14 +9,8 @@ cd "$PROJECT_DIR" || exit 1
 # Mandatory tools
 #-------------------------------------------------------------------------------
 
-# Check if dep is available in path
-if ! has dep; then
-  echo_info "Installing dep tool"
-  go get -u -v github.com/golang/dep/cmd/dep
-fi
-
 echo_info "Download golang dependencies"
-dep ensure -v -vendor-only
+go get -u
 
 if ! has golangci-lint; then
   echo_info "Install golangci-lint for static code analysis (via curl)"
@@ -48,8 +42,6 @@ fi
 
 # Make the code ready for development
 #-------------------------------------------------------------------------------
-# Ensure that mocks is up to date
-make gen.mock
 
 echo_info "Config git hooks push"
 git config core.hooksPath "${PROJECT_DIR}/script/git-hooks"

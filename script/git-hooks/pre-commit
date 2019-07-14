@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # shellcheck source=../common.sh
-. "$(git rev-parse --show-toplevel || echo ".")/scripts/common.sh"
+. "$(git rev-parse --show-toplevel || echo ".")/script/common.sh"
 
 cd "$PROJECT_DIR" || true
 

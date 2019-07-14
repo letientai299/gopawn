@@ -22,14 +22,11 @@ test: ## Generate mock and run all test. To run specified tests, use `./script/t
 lint: ## Run linter
 	@script/lint.sh
 
+.PHONY: build
 build: ## Show build.sh help
 	@script/build.sh
 
 build.%: ## Build artifact defined by '%', e.g: 'make build.server` will trigger ./script/build.sh server
 	@script/build.sh $*
 
-.PHONY: docs
-docs: ## Build document for the proto files
-	@script/docs.sh
-
-all: clean setup gen.all build.all  ## Clean, setup, generate and then build all the binaries.
+all: clean setup build.all  ## Clean, setup, generate and then build all the binaries.
