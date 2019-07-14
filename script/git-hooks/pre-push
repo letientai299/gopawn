@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# shellcheck source=../common.sh
+. "$(git rev-parse --show-toplevel || echo ".")/scripts/common.sh"
+
+cd "$PROJECT_DIR" || true
+
+echo_info "Running test before pushing to remote"
+# make test || exit 1

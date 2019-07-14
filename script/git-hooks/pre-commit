@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# shellcheck source=../common.sh
+. "$(git rev-parse --show-toplevel || echo ".")/scripts/common.sh"
+
+cd "$PROJECT_DIR" || true
+
+for file in $(git diff --cached --name-only | grep -E '\.(go)$'); do
+  echo_info "goimports: $file"
+  goimports -e -w $file
+  if [ $? -ne 0 ]; then
+    echo "goimports failed on staged file '$file'. Please check your code and try again."
+    exit 1 # exit with failure status
+  fi
+  git add $file
+done
+
+echo_info "Lint"
+make lint || exit 1
