@@ -7,41 +7,41 @@ import (
 )
 
 const (
-	DEFAULT_DIALECT                 = "en"
-	COMMENT_PREFIX                  = "#"
-	TAG_PREFIX                      = "@"
-	TITLE_KEYWORD_SEPARATOR         = ":"
-	TABLE_CELL_SEPARATOR            = '|'
-	ESCAPE_CHAR                     = '\\'
-	ESCAPED_NEWLINE                 = 'n'
-	DOCSTRING_SEPARATOR             = "\"\"\""
-	DOCSTRING_ALTERNATIVE_SEPARATOR = "```"
+	DefaultDialect                = "en"
+	CommentPrefix                 = "#"
+	TagPrefix                     = "@"
+	TitleKeywordSeparator         = ":"
+	TableCellSeparator            = '|'
+	EscapeChar                    = '\\'
+	EscapedNewline                = 'n'
+	DocstringSeparator            = "\"\"\""
+	DocstringAlternativeSeparator = "```"
 )
 
 type matcher struct {
-	gdp                      GherkinDialectProvider
-	default_lang             string
+	gdp                      DialectProvider
+	defaultLang              string
 	lang                     string
-	dialect                  *GherkinDialect
+	dialect                  *Dialect
 	activeDocStringSeparator string
 	indentToRemove           int
 	languagePattern          *regexp.Regexp
 }
 
-func NewMatcher(gdp GherkinDialectProvider) Matcher {
+func NewMatcher(gdp DialectProvider) Matcher {
 	return &matcher{
 		gdp:             gdp,
-		default_lang:    DEFAULT_DIALECT,
-		lang:            DEFAULT_DIALECT,
-		dialect:         gdp.GetDialect(DEFAULT_DIALECT),
+		defaultLang:     DefaultDialect,
+		lang:            DefaultDialect,
+		dialect:         gdp.GetDialect(DefaultDialect),
 		languagePattern: regexp.MustCompile("^\\s*#\\s*language\\s*:\\s*([a-zA-Z\\-_]+)\\s*$"),
 	}
 }
 
-func NewLanguageMatcher(gdp GherkinDialectProvider, language string) Matcher {
+func NewLanguageMatcher(gdp DialectProvider, language string) Matcher {
 	return &matcher{
 		gdp:             gdp,
-		default_lang:    language,
+		defaultLang:     language,
 		lang:            language,
 		dialect:         gdp.GetDialect(language),
 		languagePattern: regexp.MustCompile("^\\s*#\\s*language\\s*:\\s*([a-zA-Z\\-_]+)\\s*$"),
@@ -52,7 +52,7 @@ func (m *matcher) Reset() {
 	m.indentToRemove = 0
 	m.activeDocStringSeparator = ""
 	if m.lang != "en" {
-		m.dialect = m.gdp.GetDialect(m.default_lang)
+		m.dialect = m.gdp.GetDialect(m.defaultLang)
 		m.lang = "en"
 	}
 }
@@ -68,7 +68,7 @@ func (m *matcher) newTokenAtLocation(line, index int) (token *Token) {
 func (m *matcher) MatchEOF(line *Line) (ok bool, token *Token, err error) {
 	if line.IsEof() {
 		token, ok = m.newTokenAtLocation(line.LineNumber, line.Indent()), true
-		token.Type = TokenType_EOF
+		token.Type = TokenTypeEOF
 	}
 	return
 }
@@ -76,35 +76,35 @@ func (m *matcher) MatchEOF(line *Line) (ok bool, token *Token, err error) {
 func (m *matcher) MatchEmpty(line *Line) (ok bool, token *Token, err error) {
 	if line.IsEmpty() {
 		token, ok = m.newTokenAtLocation(line.LineNumber, line.Indent()), true
-		token.Type = TokenType_Empty
+		token.Type = TokenTypeEmpty
 	}
 	return
 }
 
 func (m *matcher) MatchComment(line *Line) (ok bool, token *Token, err error) {
-	if line.StartsWith(COMMENT_PREFIX) {
+	if line.StartsWith(CommentPrefix) {
 		token, ok = m.newTokenAtLocation(line.LineNumber, 0), true
-		token.Type = TokenType_Comment
+		token.Type = TokenTypeComment
 		token.Text = line.LineText
 	}
 	return
 }
 
 func (m *matcher) MatchTagLine(line *Line) (ok bool, token *Token, err error) {
-	if line.StartsWith(TAG_PREFIX) {
+	if line.StartsWith(TagPrefix) {
 		var tags []*LineSpan
 		var column = line.Indent()
-		splits := strings.Split(line.TrimmedLineText, TAG_PREFIX)
+		splits := strings.Split(line.TrimmedLineText, TagPrefix)
 		for i := range splits {
 			txt := strings.Trim(splits[i], " ")
 			if txt != "" {
-				tags = append(tags, &LineSpan{column, TAG_PREFIX + txt})
+				tags = append(tags, &LineSpan{column, TagPrefix + txt})
 			}
 			column = column + len(splits[i]) + 1
 		}
 
 		token, ok = m.newTokenAtLocation(line.LineNumber, line.Indent()), true
-		token.Type = TokenType_TagLine
+		token.Type = TokenTypeTagLine
 		token.Items = tags
 	}
 	return
@@ -113,7 +113,7 @@ func (m *matcher) MatchTagLine(line *Line) (ok bool, token *Token, err error) {
 func (m *matcher) matchTitleLine(line *Line, tokenType TokenType, keywords []string) (ok bool, token *Token, err error) {
 	for i := range keywords {
 		keyword := keywords[i]
-		if line.StartsWith(keyword + TITLE_KEYWORD_SEPARATOR) {
+		if line.StartsWith(keyword + TitleKeywordSeparator) {
 			token, ok = m.newTokenAtLocation(line.LineNumber, line.Indent()), true
 			token.Type = tokenType
 			token.Keyword = keyword
@@ -125,19 +125,24 @@ func (m *matcher) matchTitleLine(line *Line, tokenType TokenType, keywords []str
 }
 
 func (m *matcher) MatchFeatureLine(line *Line) (ok bool, token *Token, err error) {
-	return m.matchTitleLine(line, TokenType_FeatureLine, m.dialect.FeatureKeywords())
+	return m.matchTitleLine(line, TokenTypeFeatureLine, m.dialect.FeatureKeywords())
+}
+func (m *matcher) MatchRuleLine(line *Line) (ok bool, token *Token, err error) {
+	return m.matchTitleLine(line, TokenTypeRuleLine, m.dialect.RuleKeywords())
 }
 func (m *matcher) MatchBackgroundLine(line *Line) (ok bool, token *Token, err error) {
-	return m.matchTitleLine(line, TokenType_BackgroundLine, m.dialect.BackgroundKeywords())
+	return m.matchTitleLine(line, TokenTypeBackgroundLine, m.dialect.BackgroundKeywords())
 }
 func (m *matcher) MatchScenarioLine(line *Line) (ok bool, token *Token, err error) {
-	return m.matchTitleLine(line, TokenType_ScenarioLine, m.dialect.ScenarioKeywords())
-}
-func (m *matcher) MatchScenarioOutlineLine(line *Line) (ok bool, token *Token, err error) {
-	return m.matchTitleLine(line, TokenType_ScenarioOutlineLine, m.dialect.ScenarioOutlineKeywords())
+	ok, token, err = m.matchTitleLine(line, TokenTypeScenarioLine, m.dialect.ScenarioKeywords())
+	if ok || (err != nil) {
+		return ok, token, err
+	}
+	ok, token, err = m.matchTitleLine(line, TokenTypeScenarioLine, m.dialect.ScenarioOutlineKeywords())
+	return ok, token, err
 }
 func (m *matcher) MatchExamplesLine(line *Line) (ok bool, token *Token, err error) {
-	return m.matchTitleLine(line, TokenType_ExamplesLine, m.dialect.ExamplesKeywords())
+	return m.matchTitleLine(line, TokenTypeExamplesLine, m.dialect.ExamplesKeywords())
 }
 func (m *matcher) MatchStepLine(line *Line) (ok bool, token *Token, err error) {
 	keywords := m.dialect.StepKeywords()
@@ -145,7 +150,7 @@ func (m *matcher) MatchStepLine(line *Line) (ok bool, token *Token, err error) {
 		keyword := keywords[i]
 		if line.StartsWith(keyword) {
 			token, ok = m.newTokenAtLocation(line.LineNumber, line.Indent()), true
-			token.Type = TokenType_StepLine
+			token.Type = TokenTypeStepLine
 			token.Keyword = keyword
 			token.Text = strings.Trim(line.TrimmedLineText[len(keyword):], " ")
 			return
@@ -159,24 +164,26 @@ func (m *matcher) MatchDocStringSeparator(line *Line) (ok bool, token *Token, er
 		if line.StartsWith(m.activeDocStringSeparator) {
 			// close
 			token, ok = m.newTokenAtLocation(line.LineNumber, line.Indent()), true
-			token.Type = TokenType_DocStringSeparator
+			token.Type = TokenTypeDocStringSeparator
+			token.Keyword = m.activeDocStringSeparator
 
 			m.indentToRemove = 0
 			m.activeDocStringSeparator = ""
 		}
 		return
 	}
-	if line.StartsWith(DOCSTRING_SEPARATOR) {
-		m.activeDocStringSeparator = DOCSTRING_SEPARATOR
-	} else if line.StartsWith(DOCSTRING_ALTERNATIVE_SEPARATOR) {
-		m.activeDocStringSeparator = DOCSTRING_ALTERNATIVE_SEPARATOR
+	if line.StartsWith(DocstringSeparator) {
+		m.activeDocStringSeparator = DocstringSeparator
+	} else if line.StartsWith(DocstringAlternativeSeparator) {
+		m.activeDocStringSeparator = DocstringAlternativeSeparator
 	}
 	if m.activeDocStringSeparator != "" {
 		// open
 		contentType := line.TrimmedLineText[len(m.activeDocStringSeparator):]
 		m.indentToRemove = line.Indent()
 		token, ok = m.newTokenAtLocation(line.LineNumber, line.Indent()), true
-		token.Type = TokenType_DocStringSeparator
+		token.Type = TokenTypeDocStringSeparator
+		token.Keyword = m.activeDocStringSeparator
 		token.Text = contentType
 	}
 	return
@@ -184,7 +191,7 @@ func (m *matcher) MatchDocStringSeparator(line *Line) (ok bool, token *Token, er
 
 func (m *matcher) MatchTableRow(line *Line) (ok bool, token *Token, err error) {
 	var firstChar, firstPos = utf8.DecodeRuneInString(line.TrimmedLineText)
-	if firstChar == TABLE_CELL_SEPARATOR {
+	if firstChar == TableCellSeparator {
 		var cells []*LineSpan
 		var cell []rune
 		var startCol = line.Indent() + 2 // column where the current cell started
@@ -192,7 +199,7 @@ func (m *matcher) MatchTableRow(line *Line) (ok bool, token *Token, err error) {
 		for i, w, col := firstPos, 0, startCol; i < len(line.TrimmedLineText); i += w {
 			var char rune
 			char, w = utf8.DecodeRuneInString(line.TrimmedLineText[i:])
-			if char == TABLE_CELL_SEPARATOR {
+			if char == TableCellSeparator {
 				// append current cell
 				txt := string(cell)
 				txtTrimmed := strings.TrimLeft(txt, " ")
@@ -201,16 +208,16 @@ func (m *matcher) MatchTableRow(line *Line) (ok bool, token *Token, err error) {
 				// start building next
 				cell = make([]rune, 0)
 				startCol = col + 1
-			} else if char == ESCAPE_CHAR {
+			} else if char == EscapeChar {
 				// skip this character but count the column
 				i += w
 				col++
 				char, w = utf8.DecodeRuneInString(line.TrimmedLineText[i:])
-				if char == ESCAPED_NEWLINE {
+				if char == EscapedNewline {
 					cell = append(cell, '\n')
 				} else {
-					if char != TABLE_CELL_SEPARATOR && char != ESCAPE_CHAR {
-						cell = append(cell, ESCAPE_CHAR)
+					if char != TableCellSeparator && char != EscapeChar {
+						cell = append(cell, EscapeChar)
 					}
 					cell = append(cell, char)
 				}
@@ -221,7 +228,7 @@ func (m *matcher) MatchTableRow(line *Line) (ok bool, token *Token, err error) {
 		}
 
 		token, ok = m.newTokenAtLocation(line.LineNumber, line.Indent()), true
-		token.Type = TokenType_TableRow
+		token.Type = TokenTypeTableRow
 		token.Items = cells
 	}
 	return
@@ -232,7 +239,7 @@ func (m *matcher) MatchLanguage(line *Line) (ok bool, token *Token, err error) {
 	if len(matches) > 0 {
 		lang := matches[1]
 		token, ok = m.newTokenAtLocation(line.LineNumber, line.Indent()), true
-		token.Type = TokenType_Language
+		token.Type = TokenTypeLanguage
 		token.Text = lang
 
 		dialect := m.gdp.GetDialect(lang)
@@ -248,7 +255,7 @@ func (m *matcher) MatchLanguage(line *Line) (ok bool, token *Token, err error) {
 
 func (m *matcher) MatchOther(line *Line) (ok bool, token *Token, err error) {
 	token, ok = m.newTokenAtLocation(line.LineNumber, 0), true
-	token.Type = TokenType_Other
+	token.Type = TokenTypeOther
 
 	element := line.LineText
 	txt := strings.TrimLeft(element, " ")

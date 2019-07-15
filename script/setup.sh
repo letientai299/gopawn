@@ -29,6 +29,15 @@ if ! has mockgen; then
   go install -v -i github.com/golang/mock/mockgen
 fi
 
+if ! has mono; then
+  if has brew; then
+    echo_info "Install mono using homebrew"
+    brew install mono
+  else
+    echo_warning "Mono is not found, please install it from https://www.mono-project.com/"
+  fi
+fi
+
 # Nice to have tools, should only be installed when not on CI, to save build time
 #-------------------------------------------------------------------------------
 if [[ -z $CI ]]; then

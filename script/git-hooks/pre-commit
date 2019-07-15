@@ -6,6 +6,11 @@
 cd "$PROJECT_DIR" || true
 
 for file in $(git diff --cached --name-only | grep -E '\.(go)$'); do
+   # check if file exits, to not format deleted files
+  if [ ! -f $file ]; then
+    continue
+  fi
+
   echo_info "goimports: $file"
   goimports -e -w $file
   if [ $? -ne 0 ]; then
@@ -15,5 +20,3 @@ for file in $(git diff --cached --name-only | grep -E '\.(go)$'); do
   git add $file
 done
 
-echo_info "Lint"
-make lint || exit 1

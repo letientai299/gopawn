@@ -1,21 +1,25 @@
 package gherkin
 
-type GherkinDialect struct {
+type Dialect struct {
 	Language string
 	Name     string
 	Native   string
 	Keywords map[string][]string
 }
 
-func (g *GherkinDialect) FeatureKeywords() []string {
+func (g *Dialect) FeatureKeywords() []string {
 	return g.Keywords["feature"]
 }
 
-func (g *GherkinDialect) ScenarioKeywords() []string {
+func (g *Dialect) RuleKeywords() []string {
+	return g.Keywords["rule"]
+}
+
+func (g *Dialect) ScenarioKeywords() []string {
 	return g.Keywords["scenario"]
 }
 
-func (g *GherkinDialect) StepKeywords() []string {
+func (g *Dialect) StepKeywords() []string {
 	result := g.Keywords["given"]
 	result = append(result, g.Keywords["when"]...)
 	result = append(result, g.Keywords["then"]...)
@@ -24,24 +28,24 @@ func (g *GherkinDialect) StepKeywords() []string {
 	return result
 }
 
-func (g *GherkinDialect) BackgroundKeywords() []string {
+func (g *Dialect) BackgroundKeywords() []string {
 	return g.Keywords["background"]
 }
 
-func (g *GherkinDialect) ScenarioOutlineKeywords() []string {
+func (g *Dialect) ScenarioOutlineKeywords() []string {
 	return g.Keywords["scenarioOutline"]
 }
 
-func (g *GherkinDialect) ExamplesKeywords() []string {
+func (g *Dialect) ExamplesKeywords() []string {
 	return g.Keywords["examples"]
 }
 
-type GherkinDialectProvider interface {
-	GetDialect(language string) *GherkinDialect
+type DialectProvider interface {
+	GetDialect(language string) *Dialect
 }
 
-type gherkinDialectMap map[string]*GherkinDialect
+type gherkinDialectMap map[string]*Dialect
 
-func (g gherkinDialectMap) GetDialect(language string) *GherkinDialect {
+func (g gherkinDialectMap) GetDialect(language string) *Dialect {
 	return g[language]
 }

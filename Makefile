@@ -22,6 +22,10 @@ test: ## Generate mock and run all test. To run specified tests, use `./script/t
 lint: ## Run linter
 	@script/lint.sh
 
+.PHONY: gen
+gen: ## Run code generation
+	@script/gen.sh parser
+
 .PHONY: build
 build: ## Show build.sh help
 	@script/build.sh
