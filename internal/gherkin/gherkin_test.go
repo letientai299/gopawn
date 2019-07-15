@@ -1,39 +1,24 @@
 package gherkin
 
 import (
-	"gopawn/internal/msg"
-	"reflect"
+	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseFeature(t *testing.T) {
-	tests := []struct {
-		src         string
-		wantFeature *msg.GherkinDocument
-		wantErr     bool
-	}{
-		{
-			src: `
-# simple
-Feature: fizzbuzz
-`,
-		},
-	}
-	for _, tc := range tests {
-		tt := tc
-		name := strings.Split(tt.src, "\n")[0]
-		name = strings.TrimPrefix(name, "# ")
-		t.Run(name, func(t *testing.T) {
-			in := strings.NewReader(tt.src)
-			gotFeature, err := ParseGherkinDocument(in)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ParseFeature() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotFeature, tt.wantFeature) {
-				t.Errorf("ParseFeature() gotFeature = %v, want %v", gotFeature, tt.wantFeature)
-			}
-		})
-	}
+	src := `
+# should still parse valid gherkin
+Program: fizzbuzz program
+Feature: fizzbuzz feature
+`
+	in := strings.NewReader(src)
+	doc, err := ParseGherkinDocument(in)
+
+	assert.NoError(t, err, "don't want err")
+	fmt.Println(doc.GetFeature())
+	fmt.Println(doc.GetComments())
+	fmt.Println(doc.GetProgram())
 }

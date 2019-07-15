@@ -20,3 +20,6 @@ for file in $(git diff --cached --name-only | grep -E '\.(go)$'); do
   git add $file
 done
 
+go mod tidy
+git add go.sum
+git add go.mod

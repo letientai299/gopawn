@@ -83,13 +83,23 @@ func (t TokenType) RuleType() RuleType {
 
 type RuleType int
 
-const (
-  RuleTypeNone RuleType = iota
+func (r RuleType) String() string {
+  return ruleTypeNames[int(r)]
+}
 
-  @foreach(var rule in Model.RuleSet.Where(r => !r.TempRule))
-  {<text>  @Raw("RuleType" + rule.Name.Replace("#", ""))
-</text>}
+const (
+  RuleTypeNone = RuleType(0)
+  @{int i = 1;}@foreach(var rule in Model.RuleSet.Where(r => !r.TempRule))
+  {<text>  @Raw("RuleType" + rule.Name.Replace("#", "")) = RuleType(@i)
+</text>i++;}
 )
+
+var ruleTypeNames = map[int]string{
+  0: "RuleTypeNone",
+  @{i = 1;}@foreach(var rule in Model.RuleSet.Where(r => !r.TempRule))
+  {<text>  @i: "@Raw("RuleType" + rule.Name.Replace("#", ""))",
+</text>i++;}
+}
 
 func (t RuleType) IsEOF() bool {
   return t == RuleTypeEOF

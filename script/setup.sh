@@ -38,6 +38,16 @@ if ! has mono; then
   fi
 fi
 
+if ! has protoc; then
+  if has brew; then
+    echo_info "Install protobuf and protoc-gen-go using homebrew"
+    brew install protobuf
+    brew install protoc-gen-go
+  else
+    echo_warning "protobuf compiler is not found, please install it. https://github.com/protocolbuffers/protobuf"
+  fi
+fi
+
 # Nice to have tools, should only be installed when not on CI, to save build time
 #-------------------------------------------------------------------------------
 if [[ -z $CI ]]; then

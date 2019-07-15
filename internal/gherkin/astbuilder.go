@@ -250,6 +250,26 @@ func (t *astBuilder) transformNode(node *astNode) (interface{}, error) {
 		}
 		return strings.Join(desc, "\n"), nil
 
+	case RuleTypeProgram:
+		header, ok := node.getSingle(RuleTypeProgramHeader).(*astNode)
+		if !ok {
+			return nil, nil
+		}
+		progLine := header.getToken(TokenTypeProgramLine)
+		if progLine == nil {
+			return nil, nil
+		}
+
+		description, _ := header.getSingle(RuleTypeDescription).(string)
+
+		prog := &msg.GherkinDocument_Program{}
+		prog.Location = astLocation(progLine)
+		prog.Language = progLine.GherkinDialect
+		prog.Keyword = progLine.Keyword
+		prog.Name = progLine.Text
+		prog.Description = description
+		return prog, nil
+
 	case RuleTypeFeature:
 		header, ok := node.getSingle(RuleTypeFeatureHeader).(*astNode)
 		if !ok {
@@ -335,10 +355,14 @@ func (t *astBuilder) transformNode(node *astNode) (interface{}, error) {
 
 	case RuleTypeGherkinDocument:
 		feature, _ := node.getSingle(RuleTypeFeature).(*msg.GherkinDocument_Feature)
+		prog, _ := node.getSingle(RuleTypeProgram).(*msg.GherkinDocument_Program)
 
 		doc := &msg.GherkinDocument{}
 		if feature != nil {
 			doc.Feature = feature
+		}
+		if prog != nil {
+			doc.Program = prog
 		}
 		doc.Comments = t.comments
 		return doc, nil

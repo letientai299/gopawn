@@ -10,8 +10,22 @@ Generate code and other artifacts that required to build binaries. Known recipes
 
   parser      generate parser from defined grammar and template, (need special setup)
 
+  proto       generate golang code from the proto msg
+
 See "make build" if you are looking building binary artifacts.
 EOF
+}
+
+gen_all() {
+  gen_proto
+  gen_parser
+}
+
+gen_proto() {
+  echo_info "Generate golang code from proto"
+  protoc --go_out=internal/msg/ \
+    --proto_path=./internal/msg \
+    msg.proto
 }
 
 gen_parser() {
@@ -24,6 +38,14 @@ gen_parser() {
 cd "$PROJECT_DIR" || exit 1
 
 case "$1" in
+all)
+  gen_all
+  exit
+  ;;
+proto)
+  gen_proto
+  exit
+  ;;
 parser)
   gen_parser
   exit

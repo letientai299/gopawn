@@ -7,6 +7,10 @@ type Dialect struct {
 	Keywords map[string][]string
 }
 
+func (g *Dialect) ProgramKeywords() []string {
+	return g.Keywords["program"]
+}
+
 func (g *Dialect) FeatureKeywords() []string {
 	return g.Keywords["feature"]
 }

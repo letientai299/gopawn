@@ -23,8 +23,11 @@ lint: ## Run linter
 	@script/lint.sh
 
 .PHONY: gen
-gen: ## Run code generation
-	@script/gen.sh parser
+gen: ## Show gen.sh help
+	@script/gen.sh
+
+gen.%: ## Gen target defined by %
+	@script/gen.sh $*
 
 .PHONY: build
 build: ## Show build.sh help
@@ -33,4 +36,4 @@ build: ## Show build.sh help
 build.%: ## Build artifact defined by '%', e.g: 'make build.server` will trigger ./script/build.sh server
 	@script/build.sh $*
 
-all: clean setup build.all  ## Clean, setup, generate and then build all the binaries.
+all: clean setup gen.all build.all  ## Clean, setup, generate and then build all the binaries.

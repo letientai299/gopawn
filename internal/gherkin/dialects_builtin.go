@@ -6,6 +6,7 @@ func DialectsBuiltin() DialectProvider {
 }
 
 const (
+	program         = "program"
 	feature         = "feature"
 	background      = "background"
 	scenario        = "scenario"
@@ -35,6 +36,9 @@ var builtinDialects = gherkinDialectMap{
 			examples: {
 				"Examples",
 				"Scenarios",
+			},
+			program: {
+				"Program",
 			},
 			feature: {
 				"Feature",
