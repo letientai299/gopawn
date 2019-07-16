@@ -29,7 +29,7 @@ func parseOptionsFromFlag() options {
 func usage() {
     _, _ = fmt.Fprintln(os.Stderr, "Usage of {{.Name}}\n")
     _, _ = fmt.Fprintln(os.Stderr, strings.TrimSpace(`{{.Description}}`))
-    _, _ = fmt.Fprintln(os.Stderr, "\n\n"))
+    _, _ = fmt.Fprintln(os.Stderr, "")
     flag.PrintDefaults()
 }
 
