@@ -2,7 +2,7 @@
 
 # Source the common.sh script
 # shellcheck source=./common.sh
-. "$(git rev-parse --show-toplevel || echo ".")/scripts/common.sh"
+. "$(git rev-parse --show-toplevel || echo ".")/script/common.sh"
 
 cd "$PROJECT_DIR" || exit 1
 

@@ -12,7 +12,8 @@ func TestParseFeature(t *testing.T) {
 	src := `
 # should still parse valid gherkin
 Program: fizzbuzz program
-Feature: fizzbuzz feature
+
+ A test program.
 `
 	in := strings.NewReader(src)
 	doc, err := ParseGherkinDocument(in)
@@ -21,4 +22,5 @@ Feature: fizzbuzz feature
 	fmt.Println(doc.GetFeature())
 	fmt.Println(doc.GetComments())
 	fmt.Println(doc.GetProgram())
+	fmt.Println(doc.GetProgram().GetDescription())
 }

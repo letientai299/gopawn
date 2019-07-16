@@ -48,6 +48,10 @@ if ! has protoc; then
   fi
 fi
 
+if ! has packr2; then
+  go get -u github.com/gobuffalo/packr/v2/packr2
+fi
+
 # Nice to have tools, should only be installed when not on CI, to save build time
 #-------------------------------------------------------------------------------
 if [[ -z $CI ]]; then

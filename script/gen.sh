@@ -7,6 +7,7 @@
 usage() {
   cat <<EOF
 Generate code and other artifacts that required to build binaries. Known recipes:
+  gogen       run go generate
 
   parser      generate parser from defined grammar and template, (need special setup)
 
@@ -17,8 +18,13 @@ EOF
 }
 
 gen_all() {
+  gen_gogen
   gen_proto
   gen_parser
+}
+
+gen_gogen(){
+  go generate ./...
 }
 
 gen_proto() {
@@ -40,6 +46,10 @@ cd "$PROJECT_DIR" || exit 1
 case "$1" in
 all)
   gen_all
+  exit
+  ;;
+gogen)
+  gen_gogen
   exit
   ;;
 proto)

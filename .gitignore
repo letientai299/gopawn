@@ -1,1 +1,4 @@
 bin/
+packrd/
+*-packr.go
+testdata/*.go

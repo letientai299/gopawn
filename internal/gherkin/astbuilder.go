@@ -3,6 +3,8 @@ package gherkin
 import (
 	"gopawn/internal/msg"
 	"strings"
+
+	"github.com/iancoleman/strcase"
 )
 
 type AstBuilder interface {
@@ -266,7 +268,7 @@ func (t *astBuilder) transformNode(node *astNode) (interface{}, error) {
 		prog.Location = astLocation(progLine)
 		prog.Language = progLine.GherkinDialect
 		prog.Keyword = progLine.Keyword
-		prog.Name = progLine.Text
+		prog.Name = strcase.ToSnake(progLine.Text)
 		prog.Description = description
 		return prog, nil
 
